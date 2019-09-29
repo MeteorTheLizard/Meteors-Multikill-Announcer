@@ -1,0 +1,11 @@
+{
+	"title"		:	"Meteor's Multikill Announcer",
+	"type"		:	"tool",
+	"tags"		:	[ "fun", "movie" ],
+	"ignore"	:
+	[
+		"*.psd",
+		"*.vcproj",
+		"*.svn*"
+	]
+}
