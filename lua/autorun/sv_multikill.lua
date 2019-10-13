@@ -1,10 +1,12 @@
 --Made by MrRangerLP
 
 if SERVER then
+	resource.AddWorkshop("1659142161")
+
 	local AoA = 15
 	for a = 1,AoA,1 do
 		for k = 0,9,1 do
-			resource.AddFile("sound/meteorsmultikill/"..tostring(a).."/Announcer"..tostring(k)..".mp3")
+			resource.AddFile("sound/meteorsmultikill/"..tostring(a).."/announcer"..tostring(k)..".ogg")
 		end
 	end
 
@@ -19,7 +21,7 @@ if SERVER then
 		end,StrName .. "_callback")
 	end
 	
-	MeteorsCallbackCreate("mmk_timeforkills",function() WhichAnnouncer = GetConVar("mmk_announcer"):GetInt() end)
+	MeteorsCallbackCreate("mmk_announcer",function() WhichAnnouncer = GetConVar("mmk_announcer"):GetInt() end)
 	MeteorsCallbackCreate("mmk_timeforkills",function() TimeForKills = GetConVar("mmk_timeforkills"):GetInt() end)
 
 	hook.Add("Tick","MMMAnnouncerInit",function()
@@ -48,55 +50,58 @@ if SERVER then
 		{"Has a DOUBLE KILL!","Has a MORE THAN 2 BUT LESS THAN 4 KILL!","Has a ULTRA KILL!","Has a MONSTER KILL!","IS UNSTOPPABLE!!","IS GODLIKE!","GABEN REFUSES TO READ","GABE PLS","HAS DISCOVERED YOUR SCAM"}
 	}
 
+	local SendToPlayers = function(Number)
+		for k,v in pairs(player.GetAll()) do v:SendLua("surface.PlaySound(\"meteorsmultikill/"..tostring(WhichAnnouncer).."/announcer"..Number..".ogg\")") end
+	end
+	
+	timer.Create("rzmMultikillAnnouncerTimer",1,0,function()
+		for k,v in pairs(player.GetAll()) do
+			if v.TimerNextKill and v.TimerNextKill > 0 then
+				v.TimerNextKill = (v.TimerNextKill - 1)
+			end
+		end
+	end)
+	
 	local TableAnnouncerN = {1,2,7,8,9,10,11,12,13}
 	hook.Add("PlayerDeath","rzmMultikillAnnouncer",function(Target,Inflictor,Attacker)
 		if not Target:IsPlayer() then return end
 		if not Attacker:IsPlayer() then return end
+		if Target == Attacker then Attacker.MultiKillPlyer = 0; Attacker.TimerNextKill = 0; return end
 		
 		timer.Simple(0.1,function()
 			if not Attacker.MultiKillPlyer then Attacker.MultiKillPlyer = 0 end
+			if Attacker.MultiKillPlyer > 0 and Attacker.TimerNextKill == 0 then Attacker.MultiKillPlyer = 0 end
 			
 			Attacker.TimerNextKill = TimeForKills
 			Attacker.MultiKillPlyer = (Attacker.MultiKillPlyer + 1)
 
-			if table.HasValue(TableAnnouncerN,WhichAnnouncer) then
-				if Target:LastHitGroup() == 1 then
-					if Attacker.MultiKillPlyer == 1 then
-						Attacker:PrintMessage(HUD_PRINTCENTER,"HEADSHOT!")
-						Attacker:SendLua("surface.PlaySound(\"meteorsmultikill/"..tostring(WhichAnnouncer).."/Announcer0.mp3\")")
-					end
+			if Target:LastHitGroup() == 1 then
+				if Attacker.MultiKillPlyer == 1 and table.HasValue(TableAnnouncerN,WhichAnnouncer) then
+					Attacker:PrintMessage(HUD_PRINTCENTER,"HEADSHOT!")
+					Attacker:SendLua("surface.PlaySound(\"meteorsmultikill/"..tostring(WhichAnnouncer).."/announcer0.ogg\")")
 				end
 			end
 			
 			timer.Destroy("rzmAnnounceKills")
 			timer.Create("rzmAnnounceKills",0.1,1,function()
 				if (Attacker.MultiKillPlyer >= 10 and WhichAnnouncer == 12) or (Attacker.MultiKillPlyer >= 10 and WhichAnnouncer == 15)then
-					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][9])
-					for k,v in pairs(player.GetAll()) do v:SendLua("surface.PlaySound(\"meteorsmultikill/"..tostring(WhichAnnouncer).."/Announcer9.mp3\")") end
+					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][9]); SendToPlayers("9")
 				elseif (Attacker.MultiKillPlyer >= 9 and WhichAnnouncer == 12) or (Attacker.MultiKillPlyer >= 9 and WhichAnnouncer == 15) then
-					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][8])
-					for k,v in pairs(player.GetAll()) do v:SendLua("surface.PlaySound(\"meteorsmultikill/"..tostring(WhichAnnouncer).."/Announcer8.mp3\")") end
+					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][8]); SendToPlayers("8")
 				elseif Attacker.MultiKillPlyer >= 8 and WhichAnnouncer ~= 3 and WhichAnnouncer ~= 14 then
-					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][7])
-					for k,v in pairs(player.GetAll()) do v:SendLua("surface.PlaySound(\"meteorsmultikill/"..tostring(WhichAnnouncer).."/Announcer7.mp3\")") end
+					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][7]); SendToPlayers("7")
 				elseif Attacker.MultiKillPlyer >= 7 and WhichAnnouncer ~= 14 then
-					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][6])
-					for k,v in pairs(player.GetAll()) do v:SendLua("surface.PlaySound(\"meteorsmultikill/"..tostring(WhichAnnouncer).."/Announcer6.mp3\")") end
+					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][6]); SendToPlayers("6")
 				elseif Attacker.MultiKillPlyer >= 6 then
-					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][5])
-					for k,v in pairs(player.GetAll()) do v:SendLua("surface.PlaySound(\"meteorsmultikill/"..tostring(WhichAnnouncer).."/Announcer5.mp3\")") end
+					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][5]); SendToPlayers("5")
 				elseif Attacker.MultiKillPlyer >= 5 then
-					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][4])
-					for k,v in pairs(player.GetAll()) do v:SendLua("surface.PlaySound(\"meteorsmultikill/"..tostring(WhichAnnouncer).."/Announcer4.mp3\")") end
+					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][4]); SendToPlayers("4")
 				elseif Attacker.MultiKillPlyer >= 4 then
-					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][3])
-					for k,v in pairs(player.GetAll()) do v:SendLua("surface.PlaySound(\"meteorsmultikill/"..tostring(WhichAnnouncer).."/Announcer3.mp3\")") end
+					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][3]); SendToPlayers("3")
 				elseif Attacker.MultiKillPlyer >= 3 then
-					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][2])
-					for k,v in pairs(player.GetAll()) do v:SendLua("surface.PlaySound(\"meteorsmultikill/"..tostring(WhichAnnouncer).."/Announcer2.mp3\")") end
+					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][2]); SendToPlayers("2")
 				elseif Attacker.MultiKillPlyer >= 2 then
-					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][1])
-					for k,v in pairs(player.GetAll()) do v:SendLua("surface.PlaySound(\"meteorsmultikill/"..tostring(WhichAnnouncer).."/Announcer1.mp3\")") end
+					PrintMessage(HUD_PRINTCENTER,Attacker:GetName().." "..TextOnScreen[WhichAnnouncer][1]); SendToPlayers("1")
 				end
 			end)
 		end)
