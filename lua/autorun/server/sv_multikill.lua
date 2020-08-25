@@ -145,6 +145,8 @@ if SERVER then
 				local Attacker = damageInfo:GetAttacker()
 				local Inflictor = IsValid(damageInfo:GetInflictor()) and damageInfo:GetInflictor() or Attacker
 
+				if not IsValid(Attacker) or not Attacker:IsPlayer() then return end -- Props should not get kill counts!
+
 				f_ALogic(Ent,Attacker,Inflictor)
 			end
 		end
